@@ -5,7 +5,7 @@ import decimal
 import re
 
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+import matplotlib.dates as m_dates
 
 
 def get_current_timestamp():
@@ -23,6 +23,11 @@ def format_decimal_values(rates):
     return message
 
 
+def read_data_from_file_as_json(file_path):
+    with open(os.path.join(os.environ['work_dir'], 'rates.json'), 'r') as f:
+        return json.loads(f.read())
+
+
 def save_json_to_file(data, f):
     f.write(json.dumps(data))
     f.close()
@@ -38,17 +43,17 @@ def plot_and_save(x, y, y_label, title):
     plt.clf()
     plt.gca().set_title(title)
     plt.gca().set_ylabel(y_label)
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    plt.gca().xaxis.set_major_locator(mdates.DayLocator())
+    plt.gca().xaxis.set_major_formatter(m_dates.DateFormatter('%Y-%m-%d'))
+    plt.gca().xaxis.set_major_locator(m_dates.DayLocator())
     plt.plot(x, y, linestyle='-', color='tab:orange', marker='o', markerfacecolor='k')
     plt.gcf().autofmt_xdate()
     plt.gcf().tight_layout()
 
-    for x, y in zip(x, y):
-        label = "{:.5f}".format(y)
+    for x_elem, y_elem in zip(x, y):
+        label = "{:.2f}".format(y_elem)
 
         plt.annotate(label,
-                     (x, y),
+                     (x_elem, y_elem),
                      textcoords="offset points",
                      xytext=(0, 5),
                      ha='center',
@@ -59,3 +64,11 @@ def plot_and_save(x, y, y_label, title):
     img_path = os.path.join(os.environ['work_dir'], f'chart-{get_current_timestamp()}.png')
     plt.savefig(img_path)
     return img_path
+
+
+def get_formatted_date(date_obj=datetime.date.today()):
+    return date_obj.strftime('%Y-%m-%d')
+
+
+def get_given_days_ago(days):
+    return get_formatted_date(datetime.date.today() - datetime.timedelta(days=days))
