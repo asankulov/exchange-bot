@@ -17,10 +17,10 @@ class ExchangeRate:
         self.api_resource = HTTPSConnection(host='api.exchangeratesapi.io')
         if not os.path.exists(os.path.join(os.environ['work_dir'], 'rates.json')):
             f = open(os.path.join(os.environ['work_dir'], 'rates.json'), 'w')
-            data = self.get_exchange_rates_response_for_usd()
+            data = self._get_exchange_rates_response_for_usd()
             utils.save_json_to_file({'rates': data['rates'], 'timestamp': utils.get_current_timestamp()}, f)
 
-    def fetch(self, path):
+    def _fetch(self, path):
         self.api_resource.request('GET', path)
         response = self.api_resource.getresponse()
         if response.status == 400:
@@ -28,17 +28,17 @@ class ExchangeRate:
             raise BadRequestException
         return response.read()
 
-    def get_json_response(self, path):
-        return json.loads(self.fetch(path))
+    def _get_json_response(self, path):
+        return json.loads(self._fetch(path))
 
-    def get_exchange_rates_response_for_usd(self):
-        return self.get_json_response('/latest?base=USD')
+    def _get_exchange_rates_response_for_usd(self):
+        return self._get_json_response('/latest?base=USD')
 
-    def get_exchange_rates_response_for_base_and_target(self, base, to):
-        return self.get_json_response(f'/latest?base={base}&symbols={to}')
+    def _get_exchange_rates_response_for_base_and_target(self, base, to):
+        return self._get_json_response(f'/latest?base={base}&symbols={to}')
 
-    def get_exchange_rates_history_response_for_base_and_target(self, base, to, start_at, end_at):
-        return self.get_json_response(f'/history?base={base}&symbols={to}&start_at={start_at}&end_at={end_at}')
+    def _get_exchange_rates_history_response_for_base_and_target(self, base, to, start_at, end_at):
+        return self._get_json_response(f'/history?base={base}&symbols={to}&start_at={start_at}&end_at={end_at}')
 
     def get_exchange_rates_list_message(self):
 
@@ -57,7 +57,7 @@ class ExchangeRate:
             return utils.format_decimal_values(data_loaded_from_file['rates'])
 
         try:
-            data_loaded_from_api = self.get_exchange_rates_response_for_usd()
+            data_loaded_from_api = self._get_exchange_rates_response_for_usd()
         except BadRequestException:
             return 'Something went wrong.'
 
@@ -68,14 +68,14 @@ class ExchangeRate:
 
     def exchange(self, base, target, amount):
         try:
-            data_loaded_from_api = self.get_exchange_rates_response_for_base_and_target(base, target)
+            data_loaded_from_api = self._get_exchange_rates_response_for_base_and_target(base, target)
             return utils.convert_to_decimal_format(data_loaded_from_api['rates'][target] * amount)
         except BadRequestException:
             return 'Wrong currency code.'
 
     def get_history_image(self, base, target, start_at, end_at, days):
         try:
-            data_loaded_from_api = self.get_exchange_rates_history_response_for_base_and_target(base, target, start_at, end_at)
+            data_loaded_from_api = self._get_exchange_rates_history_response_for_base_and_target(base, target, start_at, end_at)
         except BadRequestException:
             return True, 'Wrong currency code.'
 
